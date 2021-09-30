@@ -9,12 +9,13 @@ const httpServer = createServer(app);
 const io = new Server(httpServer);
 
 const PORT = process.env.PORT || 3001;
-const { ADD_PEER, JOIN, SHARE_ROOMS } = require('./src/socket/actions');
+const { ADD_PEER, JOIN, SHARE_ROOMS, LEAVE, REMOVE_PEER } = require('./src/socket/actions');
+const { validate, version } = require('uuid');
 
 const getClientRooms = () => {
   const { rooms } = io.sockets.adapter;
 
-  return Array.from(rooms.keys());
+  return Array.from(rooms.keys()).filter((roomID) => validate(roomID) && version(roomID) === 4); // Фильтрация, только валидные uuid v4 айдишки
 };
 
 const shareRoomsInfo = () => {
@@ -54,6 +55,31 @@ io.on('connect', (socket) => {
 
     shareRoomsInfo();
   });
+
+  const leaveRoom = () => {
+    const { rooms } = socket;
+
+    Array.from(rooms).forEach((roomID) => {
+      const clients = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
+
+      clients.forEach((clientID) => {
+        io.to(clientID).emit(REMOVE_PEER, {
+          peerID: socket.id,
+        });
+
+        socket.emit(REMOVE_PEER, {
+          peerID: clientID,
+        });
+      });
+
+      socket.leave(roomID);
+    });
+
+    shareRoomsInfo();
+  };
+
+  socket.on(LEAVE, leaveRoom);
+  socket.on('disconnect', leaveRoom);
 });
 
 httpServer.listen(PORT, () => {
