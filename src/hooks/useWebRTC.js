@@ -38,7 +38,7 @@ export const useWebRTC = ({ roomID }) => {
 
         if (localVideoElement) {
           localVideoElement.volume = 0;
-          localVideoElement.srcObj = localMediaStream.current;
+          localVideoElement.srcObject = localMediaStream.current;
         }
       });
     };
