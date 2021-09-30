@@ -17,7 +17,7 @@ export const AppRouter = () => {
   return (
     <Switch>
       {publicRoutes.map((route) => {
-        return <Route {...route} />;
+        return <Route key={route.path} {...route} />;
       })}
       <Route component={NotFound404} />
     </Switch>
