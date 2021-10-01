@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { socket } from 'socket';
 import { SHARE_ROOMS } from 'socket/actions';
@@ -7,15 +7,18 @@ import { v4 } from 'uuid';
 export const Main = () => {
   const [rooms, updateRooms] = useState([]);
   const history = useHistory();
+  const rootNode = useRef();
 
   useEffect(() => {
     socket.on(SHARE_ROOMS, ({ rooms = [] } = {}) => {
-      updateRooms(rooms);
+      if (rootNode.current) {
+        updateRooms(rooms);
+      }
     });
   }, []);
 
   return (
-    <div>
+    <div ref={rootNode}>
       <h1>Available Rooms:</h1>
 
       <ul>

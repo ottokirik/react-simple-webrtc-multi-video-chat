@@ -9,7 +9,17 @@ const httpServer = createServer(app);
 const io = new Server(httpServer);
 
 const PORT = process.env.PORT || 3001;
-const { ADD_PEER, JOIN, SHARE_ROOMS, LEAVE, REMOVE_PEER } = require('./src/socket/actions');
+const {
+  ADD_PEER,
+  JOIN,
+  SHARE_ROOMS,
+  LEAVE,
+  REMOVE_PEER,
+  RELAY_SDP,
+  SESSION_DESCRIPTION,
+  RELAY_ICE,
+  ICE_CANDIDATE,
+} = require('./src/socket/actions');
 const { validate, version } = require('uuid');
 
 const getClientRooms = () => {
@@ -19,7 +29,7 @@ const getClientRooms = () => {
 };
 
 const shareRoomsInfo = () => {
-  io.emit(SHARE_ROOMS, { rooms: getClientRooms });
+  io.emit(SHARE_ROOMS, { rooms: getClientRooms() });
 };
 
 io.on('connect', (socket) => {
@@ -77,6 +87,20 @@ io.on('connect', (socket) => {
 
     shareRoomsInfo();
   };
+
+  socket.on(RELAY_SDP, ({ peerID, sessionDescription }) => {
+    io.to(peerID).emit(SESSION_DESCRIPTION, {
+      peerID: socket.id,
+      sessionDescription,
+    });
+  });
+
+  socket.on(RELAY_ICE, ({ peerID, iceCandidate }) => {
+    io.to(peerID).emit(ICE_CANDIDATE, {
+      peerID: socket.id,
+      iceCandidate,
+    });
+  });
 
   socket.on(LEAVE, leaveRoom);
   socket.on('disconnect', leaveRoom);
