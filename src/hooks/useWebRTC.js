@@ -45,7 +45,7 @@ export const useWebRTC = ({ roomID }) => {
 
       setClients((list) => list.filter((c) => c !== peerID));
     });
-  }, [setClients]);
+  }, []);
 
   // Принять ICE CANDIDATE
   useEffect(() => {
@@ -101,6 +101,7 @@ export const useWebRTC = ({ roomID }) => {
         tracksNumber += 1;
 
         if (tracksNumber === 2) {
+          tracksNumber = 0;
           addNewClient(peerID, () => {
             // Video элемент создается для данного peerID в provideMediaRef на страничке комнаты
             peerMediaElements.current[peerID].srcObject = remoteStream;
@@ -126,7 +127,7 @@ export const useWebRTC = ({ roomID }) => {
     };
 
     socket.on(ADD_PEER, handleAddNewPeer);
-  }, [addNewClient]);
+  }, []);
 
   useEffect(() => {
     const startCapture = async () => {
@@ -153,13 +154,13 @@ export const useWebRTC = ({ roomID }) => {
       .catch((e) => console.log('Error getting user media', e));
 
     return () => {
-      localMediaStream.current.getTracks().forEach((track) => {
+      localMediaStream.current?.getTracks().forEach((track) => {
         track.stop();
       });
 
       socket.emit(LEAVE);
     };
-  }, [roomID, addNewClient]);
+  }, [roomID]);
 
   const provideMediaRef = useCallback((id, node) => {
     peerMediaElements.current[id] = node;

@@ -106,6 +106,14 @@ io.on('connect', (socket) => {
   socket.on('disconnect', leaveRoom);
 });
 
+const publicPath = path.join(__dirname, 'public');
+
+app.use(express.static(publicPath));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
+
 httpServer.listen(PORT, () => {
   console.log(`Server run on port: ${PORT}`);
 });
